@@ -310,39 +310,14 @@ class DataParallelPPOActor(BasePPOActor):
                     #     eos_mask=response_mask,
                     #     cliprange=self.config.clip_ratio,
                     # )
-                    if self.config.use_nll_loss:
-                        pg_loss, pg_clipfrac, ppo_kl, nll_loss, rollout_util_rate, token_util_rate = core_algos.compute_policy_loss_v3(
-                            old_log_probs=old_log_probs,
-                            log_probs=log_probs,
-                            advantages=advantages,
-                            eos_mask=response_mask,
-                            cliprange=self.config.clip_ratio,
-                        )
-                    elif self.config.use_vis_pir:
-                        with torch.no_grad():
-                            log_probs_wo_vis = self._forward_micro_batch(model_inputs, temperature=temperature, remove_images_for_logp=True)
-                        pg_loss, pg_clipfrac, ppo_kl, rollout_util_rate, token_util_rate = core_algos.compute_policy_loss_v4(
-                            old_log_probs=old_log_probs,
-                            log_probs=log_probs,
-                            log_probs_wo_vis=log_probs_wo_vis,
-                            advantages=advantages,
-                            eos_mask=response_mask,
-                            cliprange=self.config.clip_ratio,
-                        )
-                    else:
-                        if self.config.use_dapo:
-                            clip_ratio_low, clip_ratio_high = self.config.clip_ratio_low, self.config.clip_ratio_high
-                        else:
-                            clip_ratio_low, clip_ratio_high = None, None
-                        pg_loss, pg_clipfrac, ppo_kl, rollout_util_rate, token_util_rate = core_algos.compute_policy_loss_v2(
-                            old_log_probs=old_log_probs,
-                            log_probs=log_probs,
-                            advantages=advantages,
-                            eos_mask=response_mask,
-                            cliprange=self.config.clip_ratio,
-                            clip_ratio_low=clip_ratio_low,
-                            clip_ratio_high=clip_ratio_high
-                        )
+                    pg_loss, pg_clipfrac, ppo_kl, rollout_util_rate, token_util_rate = core_algos.compute_policy_loss_v2(
+                        old_log_probs=old_log_probs,
+                        log_probs=log_probs,
+                        advantages=advantages,
+                        eos_mask=response_mask,
+                        cliprange=self.config.clip_ratio,
+                    )
+                    
                     if "ref_log_probs" in model_inputs:
                         ref_log_probs = model_inputs["ref_log_probs"]
                         # compute kl loss

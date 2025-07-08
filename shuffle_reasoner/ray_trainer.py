@@ -50,16 +50,10 @@ from verl.trainer import core_algos
 from .custom_algos import (
     compute_purning_grpo_advantage, 
     compute_pairwise_purning_grpo_advantage, 
-    compute_pairwise_purning_f_ovl_grpo_advantage, 
-    compute_purning_grpo_random,
-    compute_pairwise_purning_ablation,
-    compute_pairwise_purning_grpo_advantage_adv_shift,
     normalize_advantage,
-    sine_normalize_advantage,
     EXPERIENCE_SAMPLING_METHODS,
     EXPERIENCE_SAMPLING_WEIGHT_TARGET
 )
-from .filter_overlenth import compute_purning_grpo_f_ovl_advantage
 from verl.trainer.config import PPOConfig
 from verl.trainer.metrics import compute_data_metrics, compute_throughout_metrics, compute_timing_metrics, reduce_metrics
 
@@ -93,11 +87,6 @@ class AdvantageEstimator(str, Enum):
     RLOO = "rloo"
     # PURNING = "purning"
     PAIRWISE_PURNING = "pairwise_purning"
-    # FILTER_OVERLENGTH = "fovl"
-    # PAIRWISE_FILTER_OVL_PURNING = "pairwise_fovl"
-    # RANDOM_PURNING = "random_purning"
-    # ABLATION = "ablation"
-    # PAIRWISE_PURNING_ADV_SHIFT = "pairwise_purning_adv_shift"
 
 
 @dataclass
@@ -662,18 +651,7 @@ class RayPPOTrainer:
         assert self.config.trainer.sampling_weight in EXPERIENCE_SAMPLING_WEIGHT_TARGET
         experience_replay_batch = []
         num_valid_rollout = int(self.config.worker.rollout.n * (1 - self.config.worker.actor.purning_ratio))
-        # replay_times = int(self.config.data.rollout_batch_size * num_valid_rollout / self.config.worker.actor.global_batch_size)
         replay_times = self.config.trainer.replay_times
-
-        # add replay times anneling
-        if self.config.trainer.replay_annealing:
-            # replay_times = np.clip(int(np.cos(np.pi * self.global_step / (2 * self.training_steps)) * replay_times) + 1, 1, replay_times)
-            max_exp = int(np.log2(replay_times))
-            anneal_factor = np.cos(np.pi * self.global_step / (2 * self.training_steps))
-            # interpolate exponent from max_exp to 0
-            current_exp = int(np.round(np.clip(anneal_factor * max_exp, 0, max_exp)))
-            replay_times = 2 ** current_exp
-
         update_steps = int(self.config.data.rollout_batch_size * num_valid_rollout / self.config.worker.actor.global_batch_size)
 
         if self.config.trainer.sampling_weight == 'sum':
@@ -686,91 +664,24 @@ class RayPPOTrainer:
             adv_weights = np.array([item['pos_adv'] for item in batch])
         else:
             raise ValueError()
-        
-        if slice_sample:
-            batch_indices = np.arange(len(batch))
-            slice_indices = np.array_split(batch_indices, update_steps)
-            for slice in range(update_steps):
-                probabilities = normalize_advantage(adv_weights[slice_indices[slice]], current_step=self.global_step, total_training_step=self.training_steps, method=self.config.trainer.sampling_method)
+
+        probabilities = normalize_advantage(adv_weights, current_step=self.global_step, total_training_step=self.training_steps, method=self.config.trainer.sampling_method, p=self.config.trainer.sampling_coeff)
+        size_scale = update_steps / (2 * replay_times)  # because two trajectories in one pair
+        if replay_times > 1:
+            for _ in range(replay_times):
                 # 1.sample `global_batch_size` samples from the buffer and repeated several times
-                sampled_indices = np.random.choice(slice_indices[slice], size=int(self.config.worker.actor.global_batch_size / 2), p=probabilities)
+                # sampled_indices = np.random.choice(len(batch), size=int(self.config.worker.actor.global_batch_size * 2), p=probabilities, replace=False)
+                sampled_indices = np.random.choice(len(batch), size=min(int(self.config.worker.actor.global_batch_size * size_scale), len(batch)), p=probabilities, replace=False)
                 # 2.concat the sampled data to get a full size batch
                 experience_replay_batch.extend([deepcopy(batch[i]['pair_data']) for i in sampled_indices])
         else:
-            # probabilities = normalize_advantage(adv_weights, current_step=self.global_step, total_training_step=self.training_steps, method=self.config.trainer.sampling_method)
-            # # probabilities = sine_normalize_advantage(adv_weights, current_step=self.global_step, total_training_step=self.training_steps, method=self.config.trainer.sampling_method)
-            # for _ in range(replay_times):
-            #     # 1.sample `global_batch_size` samples from the buffer and repeated several times
-            #     sampled_indices = np.random.choice(len(batch), size=int(self.config.worker.actor.global_batch_size / 2), p=probabilities, replace=False)
-            #     # 2.concat the sampled data to get a full size batch
-            #     experience_replay_batch.extend([deepcopy(batch[i]['pair_data']) for i in sampled_indices])
-
-            probabilities = normalize_advantage(adv_weights, current_step=self.global_step, total_training_step=self.training_steps, method=self.config.trainer.sampling_method, p=self.config.trainer.sampling_coeff)
-            # replay_times = int(replay_times / 4)
-            size_scale = update_steps / (2 * replay_times)  # because two trajectories in one pair
-            if not self.config.trainer.ablation_shuffle:
-                if replay_times > 1:
-                    for _ in range(replay_times):
-                        # 1.sample `global_batch_size` samples from the buffer and repeated several times
-                        # sampled_indices = np.random.choice(len(batch), size=int(self.config.worker.actor.global_batch_size * 2), p=probabilities, replace=False)
-                        sampled_indices = np.random.choice(len(batch), size=min(int(self.config.worker.actor.global_batch_size * size_scale), len(batch)), p=probabilities, replace=False)
-                        # 2.concat the sampled data to get a full size batch
-                        experience_replay_batch.extend([deepcopy(batch[i]['pair_data']) for i in sampled_indices])
-                else:
-                    experience_replay_batch.extend([deepcopy(batch[i]['pair_data']) for i in range(len(batch))])
-            else:
-                if self.config.trainer.shuffle_type == 'random':
-                    for _ in range(replay_times):
-                        # 1.sample `global_batch_size` samples from the buffer and repeated several times
-                        sampled_indices = np.random.choice(len(batch), size=int(self.config.worker.actor.global_batch_size * 2), replace=False)
-                        # 2.concat the sampled data to get a full size batch
-                        experience_replay_batch.extend([deepcopy(batch[i]['pair_data']) for i in sampled_indices])
-                elif self.config.trainer.shuffle_type == 'reorder':
-                    # just reorder the original batch
-                    sampled_indices = np.random.permutation(len(batch))
-                    experience_replay_batch.extend([deepcopy(batch[i]['pair_data']) for i in sampled_indices])
+            experience_replay_batch.extend([deepcopy(batch[i]['pair_data']) for i in range(len(batch))])
         
         # 3.replace the new sampled batch to the original batch
         batch = DataProto.concat(experience_replay_batch)
         assert len(batch) == int(self.config.data.rollout_batch_size * num_valid_rollout)
         
         return batch
-    
-    def experience_resampling_with_buffer(self, batch):
-        assert isinstance(batch, list)
-        assert self.config.worker.actor.purning_ratio > 0
-        assert self.config.trainer.sampling_method in EXPERIENCE_SAMPLING_METHODS
-        assert self.config.trainer.sampling_weight in EXPERIENCE_SAMPLING_WEIGHT_TARGET
-        experience_replay_batch = []
-        num_valid_rollout = int(self.config.worker.rollout.n * (1 - self.config.worker.actor.purning_ratio))
-        replay_times = int(self.config.data.rollout_batch_size * num_valid_rollout / self.config.worker.actor.global_batch_size)
-        sample_size = int(self.config.worker.actor.global_batch_size / 2)
-        
-        combine_batch = self.experience_buffer + batch
-
-        if self.config.trainer.sampling_weight == 'sum':
-            adv_weights = np.array([item['adv_sum'] for item in combine_batch])
-        else:
-            raise ValueError()
-        
-        probabilities = normalize_advantage(adv_weights, current_step=self.global_step, total_training_step=self.training_steps, method=self.config.trainer.sampling_method)
-        for _ in range(replay_times):
-            # 1.sample `global_batch_size` samples from the buffer and repeated several times
-            sampled_indices = np.random.choice(len(combine_batch), size=sample_size, p=probabilities, replace=False)
-            # 2.concat the sampled data to get a full size batch
-            experience_replay_batch.extend([deepcopy(combine_batch[i]['pair_data']) for i in sampled_indices])
-
-        # 3.replace the new sampled batch to the original batch
-        return_batch = DataProto.concat(experience_replay_batch)
-        assert len(return_batch) == int(self.config.data.rollout_batch_size * num_valid_rollout)
-
-        # 4.update experience buffer
-        top_n = heapq.nlargest(sample_size, zip(adv_weights, combine_batch), key=lambda x: x[0])
-        self.experience_buffer = [pair_data for adv, pair_data in top_n]
-        
-        return return_batch
-
-
 
     def fit(self):
         """
@@ -909,12 +820,6 @@ class RayPPOTrainer:
 
                     # add here to maintain the pairwise buffer
                     if self.config.trainer.experience_replay and self.config.algorithm.adv_estimator == AdvantageEstimator.PAIRWISE_PURNING:
-                        # if self.config.trainer.sampling_method == 'std':
-                        #     batch = self.experience_resampling_by_std(batch)
-                        # elif self.config.trainer.sampling_method == 'buffer':
-                        #     batch = self.experience_resampling_with_buffer(batch)
-                        # else:
-                        #     batch = self.experience_resampling(batch, slice_sample=self.config.trainer.slice_sample)
                         batch = self.experience_resampling(batch, slice_sample=self.config.trainer.slice_sample)
 
                     # check the type of batch

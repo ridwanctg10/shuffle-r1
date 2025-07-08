@@ -332,6 +332,7 @@ def compute_policy_loss(
     pg_clipfrac = VF.masked_mean(torch.gt(pg_losses2, pg_losses).float(), eos_mask)
     return pg_loss, pg_clipfrac, ppo_kl
 
+
 def compute_policy_loss_v2( #增加了计算rolout利用率和token利用率的计算
     old_log_probs: torch.Tensor,
     log_probs: torch.Tensor,
@@ -371,122 +372,6 @@ def compute_policy_loss_v2( #增加了计算rolout利用率和token利用率的�
         clipped_ratio = torch.exp(torch.clamp(negative_approx_kl, np.log(1.0 - clip_ratio_low), np.log(1.0 + clip_ratio_high)))
     else:
         clipped_ratio = torch.exp(torch.clamp(negative_approx_kl, np.log(1.0 - cliprange), np.log(1.0 + cliprange)))
-    ppo_kl = VF.masked_mean(-negative_approx_kl, eos_mask)
-
-    pg_losses = -advantages * ratio
-    pg_losses2 = -advantages * clipped_ratio
-
-    pg_loss = VF.masked_mean(torch.max(pg_losses, pg_losses2), eos_mask)
-    pg_clipfrac = VF.masked_mean(torch.gt(pg_losses2, pg_losses).float(), eos_mask)
-
-    # Calculate rollout utilization rate
-    rollout_un_used = (advantages.sum(dim=1) == 0) | ((advantages.sum(dim=1)<0) & (eos_mask[:, -1] == 1))
-    rollout_util_rate = 1.0 - rollout_un_used.float().mean().item()
-    # Calculate token utilization rate
-    token_un_used = (advantages == 0) | (torch.abs(ratio - 1) > cliprange)
-    token_util_rate = 1.0 - VF.masked_mean(token_un_used.float(), eos_mask).item()
-    
-    return pg_loss, pg_clipfrac, ppo_kl, rollout_util_rate, token_util_rate
-
-def compute_policy_loss_v3( # 增加了计算rolout利用率和token利用率的计算，增加了NLL loss
-    old_log_probs: torch.Tensor,
-    log_probs: torch.Tensor,
-    advantages: torch.Tensor,
-    eos_mask: torch.Tensor,
-    cliprange: float,
-    nll_coeff: float = 0.1
-) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-    """Compute the policy loss.
-
-    Adapted from https://github.com/huggingface/trl/blob/v0.15.0/trl/trainer/ppo_trainer.py#L568
-
-    Args:
-        old_log_prob: `(torch.Tensor)`
-            shape: (bs, response_length)
-        log_prob: `(torch.Tensor)`
-            shape: (bs, response_length)
-        advantages: `(torch.Tensor)`
-            shape: (bs, response_length)
-        eos_mask: `(torch.Tensor)`
-            shape: (bs, response_length)
-        cliprange: (float)
-            The clip range used in PPO. See https://arxiv.org/abs/1707.06347
-
-    Returns:
-        pg_loss: `a scalar torch.Tensor`
-            policy gradient loss computed via PPO
-        pg_clipfrac: (float)
-            a float number indicating the fraction of policy gradient loss being clipped
-    """
-    negative_approx_kl = log_probs - old_log_probs
-    # clamp the ratio before exp to avoid nan
-    # see: https://github.com/pytorch/pytorch/issues/10729
-    ratio = torch.exp(negative_approx_kl)
-    clipped_ratio = torch.exp(torch.clamp(negative_approx_kl, np.log(1.0 - cliprange), np.log(1.0 + cliprange)))
-    ppo_kl = VF.masked_mean(-negative_approx_kl, eos_mask)
-
-    pg_losses = -advantages * ratio
-    pg_losses2 = -advantages * clipped_ratio
-
-    pg_loss = VF.masked_mean(torch.max(pg_losses, pg_losses2), eos_mask)
-    pg_clipfrac = VF.masked_mean(torch.gt(pg_losses2, pg_losses).float(), eos_mask)
-
-    # add NLL loss
-    nll_losses = -torch.max(advantages,torch.zeros_like(advantages)) * log_probs
-    nll_loss = VF.masked_mean(nll_losses, eos_mask) * nll_coeff
-
-    # Calculate rollout utilization rate
-    rollout_un_used = (advantages.sum(dim=1) == 0) | ((advantages.sum(dim=1)<0) & (eos_mask[:, -1] == 1))
-    rollout_util_rate = 1.0 - rollout_un_used.float().mean().item()
-    # Calculate token utilization rate
-    token_un_used = (advantages == 0) | (torch.abs(ratio - 1) > cliprange)
-    token_util_rate = 1.0 - VF.masked_mean(token_un_used.float(), eos_mask).item()
-    
-    return pg_loss, pg_clipfrac, ppo_kl, nll_loss, rollout_util_rate, token_util_rate
-
-def compute_policy_loss_v4( # 增加了计算rolout利用率和token利用率的计算，增加了NLL loss
-    old_log_probs: torch.Tensor,
-    log_probs: torch.Tensor,
-    log_probs_wo_vis: torch.Tensor,
-    advantages: torch.Tensor,
-    eos_mask: torch.Tensor,
-    cliprange: float,
-) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-    """Compute the policy loss.
-
-    Adapted from https://github.com/huggingface/trl/blob/v0.15.0/trl/trainer/ppo_trainer.py#L568
-
-    Args:
-        old_log_prob: `(torch.Tensor)`
-            shape: (bs, response_length)
-        log_prob: `(torch.Tensor)`
-            shape: (bs, response_length)
-        advantages: `(torch.Tensor)`
-            shape: (bs, response_length)
-        eos_mask: `(torch.Tensor)`
-            shape: (bs, response_length)
-        cliprange: (float)
-            The clip range used in PPO. See https://arxiv.org/abs/1707.06347
-
-    Returns:
-        pg_loss: `a scalar torch.Tensor`
-            policy gradient loss computed via PPO
-        pg_clipfrac: (float)
-            a float number indicating the fraction of policy gradient loss being clipped
-    """
-    weight = 1.0 - torch.exp(log_probs_wo_vis)
-    mask_mean = (weight * eos_mask).sum(dim=1, keepdim=True) / (eos_mask.sum(dim=1, keepdim=True) + 1e-6)
-    weight_norm = weight / mask_mean
-    weight_norm = torch.clamp(weight_norm, min=0.1, max=10.0)
-    
-    # raise ValueError(f"weight_norm: {weight_norm.tolist()} weight: {weight.tolist()} mask_mean: {mask_mean.tolist()}")
-    advantages = advantages * weight_norm
-    
-    negative_approx_kl = log_probs - old_log_probs
-    # clamp the ratio before exp to avoid nan
-    # see: https://github.com/pytorch/pytorch/issues/10729
-    ratio = torch.exp(negative_approx_kl)
-    clipped_ratio = torch.exp(torch.clamp(negative_approx_kl, np.log(1.0 - cliprange), np.log(1.0 + cliprange)))
     ppo_kl = VF.masked_mean(-negative_approx_kl, eos_mask)
 
     pg_losses = -advantages * ratio
