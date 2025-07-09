@@ -33,4 +33,5 @@ python3 -m resample.main \
     trainer.n_gpus_per_node=${gpu_num_per_node} \
     trainer.save_checkpoint_path=${SAVE_PATH} \
     trainer.experience_replay=true \
-    algorithm.adv_estimator=pairwise_purning
+    algorithm.adv_estimator=pairwise_purning \
+    algorithm.kl_coef=0.0
