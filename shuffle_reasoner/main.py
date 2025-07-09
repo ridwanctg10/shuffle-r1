@@ -30,7 +30,6 @@ from .config import PPOConfig
 from verl.trainer.ray_trainer import ResourcePoolManager, Role
 
 from .ray_trainer import RayPPOTrainer
-# from .ray_dapo_trainer import RayDAPOTrainer
 
 
 # please make sure main_task is not scheduled on head

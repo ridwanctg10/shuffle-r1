@@ -164,7 +164,7 @@ def apply_kl_penalty(data: DataProto, kl_ctrl: core_algos.KLController, kl_penal
     return data, metrics
 
 
-def compute_advantage(data: DataProto, adv_estimator: AdvantageEstimator, gamma: float = 1.0, lam: float = 1.0, purning_ratio: float = 0.5, experience_replay: bool = False, ablation_type: str = None):
+def compute_advantage(data: DataProto, adv_estimator: AdvantageEstimator, gamma: float = 1.0, lam: float = 1.0, purning_ratio: float = 0.5, experience_replay: bool = False):
     keep_index = None
     pairwise_list = None
     token_level_rewards = data.batch["token_level_rewards"]
@@ -197,90 +197,17 @@ def compute_advantage(data: DataProto, adv_estimator: AdvantageEstimator, gamma:
         advantages, returns = core_algos.compute_rloo_outcome_advantage(
             token_level_rewards=token_level_rewards, eos_mask=response_mask, index=index
         )
-    # elif adv_estimator == AdvantageEstimator.PURNING:
-    #     Purning = True if purning_ratio > 0 else False
-    #     advantages, returns, keep_index = compute_purning_grpo_advantage(
-    #         token_level_rewards=token_level_rewards, eos_mask=response_mask, index=index, 
-    #         purning=Purning, purning_ratio=purning_ratio
-    #     )
-    # elif adv_estimator == AdvantageEstimator.FILTER_OVERLENGTH:
-    #     Purning = True if purning_ratio > 0 else False
-    #     advantages, returns, keep_index = compute_purning_grpo_f_ovl_advantage(
-    #         token_level_rewards=token_level_rewards, eos_mask=response_mask, index=index, 
-    #         purning=Purning, purning_ratio=purning_ratio
-    #     )
     elif adv_estimator == AdvantageEstimator.PAIRWISE_PURNING:
         Purning = True if purning_ratio > 0 else False
         advantages, returns, pairwise_list = compute_pairwise_purning_grpo_advantage(
             token_level_rewards=token_level_rewards, eos_mask=response_mask, index=index, 
             purning=Purning, purning_ratio=purning_ratio
         )
-    # elif adv_estimator == AdvantageEstimator.PAIRWISE_FILTER_OVL_PURNING:
-    #     Purning = True if purning_ratio > 0 else False
-    #     advantages, returns, pairwise_list = compute_pairwise_purning_f_ovl_grpo_advantage(
-    #         token_level_rewards=token_level_rewards, eos_mask=response_mask, index=index, 
-    #         purning=Purning, purning_ratio=purning_ratio
-    #     )
-    # elif adv_estimator == AdvantageEstimator.PAIRWISE_PURNING_ADV_SHIFT:
-    #     Purning = True if purning_ratio > 0 else False
-    #     advantages, returns, pairwise_list = compute_pairwise_purning_grpo_advantage_adv_shift(
-    #         token_level_rewards=token_level_rewards, eos_mask=response_mask, index=index, 
-    #         purning=Purning, purning_ratio=purning_ratio
-    #     )
-    # elif adv_estimator == AdvantageEstimator.ABLATION:
-    #     Purning = True if purning_ratio > 0 else False
-    #     advantages, returns, keep_index = compute_pairwise_purning_ablation(
-    #         token_level_rewards=token_level_rewards, eos_mask=response_mask, index=index, 
-    #         purning=Purning, purning_ratio=purning_ratio, ablation_type=ablation_type
-    #     )
     else:
         raise NotImplementedError(f"Advantage estimator {adv_estimator} is not implemented")
 
     data.batch["advantages"] = advantages
     data.batch["returns"] = returns
-
-    # if adv_estimator in [AdvantageEstimator.PURNING, AdvantageEstimator.FILTER_OVERLENGTH, AdvantageEstimator.RANDOM_PURNING, AdvantageEstimator.ABLATION]:
-    #     assert keep_index is not None, "keep_index should not be None when adv_estimator is PURNING"
-    #     tensor_data = data.batch[keep_index]
-    #     non_tensor_data = {key: val[keep_index] for key, val in data.non_tensor_batch.items()}
-    #     new_data=DataProto(batch=tensor_data, non_tensor_batch=non_tensor_data, meta_info=data.meta_info)
-    #     return new_data
-    # elif adv_estimator in [AdvantageEstimator.PAIRWISE_PURNING, AdvantageEstimator.PAIRWISE_FILTER_OVL_PURNING]:
-    #     assert pairwise_list is not None, "keep_index should not be None when adv_estimator is PAIRWISE_PURNING"
-    #     # return a list, each item in list is a pairwise tuple of DataProto, in order to maintain the pairwise information
-    #     pairwise_data = []
-    #     for pair_dict in pairwise_list:
-    #         idx_list, adv_sum, adv_max, adv_mean, pos_adv = pair_dict['pair_index'], pair_dict['adv_sum'], pair_dict['adv_max'], pair_dict['adv_mean'], pair_dict['pos_adv']
-    #         tensor_data = data.batch[idx_list]
-    #         non_tensor_data = {key: val[idx_list] for key, val in data.non_tensor_batch.items()}
-    #         pair_data=DataProto(batch=tensor_data, non_tensor_batch=non_tensor_data, meta_info=data.meta_info)
-    #         pairwise_data.append({'pair_data': pair_data, 'adv_sum': adv_sum, 'adv_max': adv_max, 'adv_mean': adv_mean, 'pos_adv': pos_adv})
-    #     if not experience_replay:
-    #         pairwise_data = DataProto.concat([item['pair_data'] for item in pairwise_data])
-    #     return pairwise_data
-    # elif adv_estimator == AdvantageEstimator.PAIRWISE_PURNING_ADV_SHIFT:
-    #     assert pairwise_list is not None, "keep_index should not be None when adv_estimator is PAIRWISE_PURNING"
-    #     # return a list, each item in list is a pairwise tuple of DataProto, in order to maintain the pairwise information
-    #     pairwise_data = []
-    #     for pair_dict in pairwise_list:
-    #         idx_list, adv_sum, adv_max, adv_mean, pos_adv, shifted_adv = pair_dict['pair_index'], pair_dict['adv_sum'], pair_dict['adv_max'], pair_dict['adv_mean'], pair_dict['pos_adv'], pair_dict['shifted_adv']
-    #         tensor_data = data.batch[idx_list]
-    #         non_tensor_data = {key: val[idx_list] for key, val in data.non_tensor_batch.items()}
-    #         pair_data=DataProto(batch=tensor_data, non_tensor_batch=non_tensor_data, meta_info=data.meta_info)
-
-    #         # hack here to change the original adv to shifted adv
-    #         pair_response_mask = pair_data.batch["response_mask"]
-    #         shifted_adv = torch.tensor(shifted_adv, device=token_level_rewards.device, dtype=token_level_rewards.dtype)
-    #         shifted_adv = shifted_adv.unsqueeze(-1).tile([1, token_level_rewards.shape[-1]]) * pair_response_mask
-    #         pair_data.batch['advantages'] = shifted_adv
-
-    #         pairwise_data.append({'pair_data': pair_data, 'adv_sum': adv_sum, 'adv_max': adv_max, 'adv_mean': adv_mean, 'pos_adv': pos_adv})
-    #     if not experience_replay:
-    #         pairwise_data = DataProto.concat([item['pair_data'] for item in pairwise_data])
-    #     return pairwise_data
-    # else:
-    #     assert (keep_index is None) and (pairwise_list is None)
-    #     return data
 
     if adv_estimator == AdvantageEstimator.PAIRWISE_PURNING:
         assert pairwise_list is not None, "keep_index should not be None when adv_estimator is PAIRWISE_PURNING"
@@ -805,9 +732,6 @@ class RayPPOTrainer:
 
                         # compute advantages, executed on the driver process
 
-                        # hack here to enable ablation study
-                        pairwise_ablation_type = self.config.trainer.pair_type if self.config.trainer.ablation_pairwise else None
-
                         batch = compute_advantage(
                             batch,
                             adv_estimator=self.config.algorithm.adv_estimator,
@@ -815,7 +739,6 @@ class RayPPOTrainer:
                             lam=self.config.algorithm.lam,
                             purning_ratio=self.config.worker.actor.purning_ratio,
                             experience_replay=self.config.trainer.experience_replay,
-                            ablation_type=pairwise_ablation_type
                         )
 
                     # add here to maintain the pairwise buffer

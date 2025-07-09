@@ -98,13 +98,7 @@ class TrainerConfig:
     sampling_weight: str = "sum"
     slice_sample: bool = False
     replay_times: int = 8
-    replay_annealing: bool = False
 
-    # ablation parameters
-    ablation_pairwise: bool = False
-    pair_type: str = "random"
-    ablation_shuffle: bool = False
-    shuffle_type: str = 'random'
 
 
     def post_init(self):
