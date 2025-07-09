@@ -130,8 +130,12 @@ class FSDPWorker(Worker):
         config.global_batch_size_per_device = (
             config.global_batch_size // self.device_mesh.size() * config.ulysses_sequence_parallel_size
         )
+
+        # NOTE: VERY IMPORTANT !!!
+        # ============================= #
         if self.config.actor.purning_ratio > 0.0:
             config.global_batch_size_per_device = int(config.global_batch_size_per_device * (1.0 - self.config.actor.purning_ratio))
+        # ============================= #
             
         if config.global_batch_size_per_device == 0:
             raise ValueError(f"{role} global batch size must be larger than num gpus.")
