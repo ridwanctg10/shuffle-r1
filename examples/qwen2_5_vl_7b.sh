@@ -13,7 +13,7 @@ SYSTEM_PROMPT="""You FIRST think about the reasoning process as an internal mono
 epoch=20
 gpu_num_per_node=8
 
-python3 -m resample.main \
+python3 -m shuffle_r1.main \
     config=examples/config.yaml \
     data.train_files=${DATA_PATH}@train \
     data.val_files=${DATA_PATH}@test \

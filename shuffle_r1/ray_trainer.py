@@ -798,6 +798,9 @@ class RayPPOTrainer:
 
                 self.logger.log(data=metrics, step=self.global_step)
 
+            if self.global_step > self.training_steps:
+                break
+
         # perform validation after training
         if self.val_reward_fn is not None:
             if (
