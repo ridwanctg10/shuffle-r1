@@ -26,7 +26,7 @@ Experiments across multiple reasoning benchmarks demonstrate that our framework 
  - [x] datasets
  - [x] training scripts
  - [x] inference scripts via Transformers and vLLM
- - [ ] evaluation scripts
+ - [x] evaluation scripts
 
 
 ## Framework Overview
