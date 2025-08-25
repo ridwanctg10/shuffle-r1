@@ -1,9 +1,18 @@
+<div align="center">
+
 # Shuffle-R1: Efficient RL framework for Multimodal Large Language Models via Data-centric Dynamic Shuffle
 
+[![Paper](https://img.shields.io/badge/paper-A42C25?style=flat&logo=arxiv&logoColor=white)](https://arxiv.org/abs/2508.05612) 
+[![Hugging Face Model](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Model-blue)](https://arxiv.org/abs/2508.05612) 
+[![Hugging Face Dataset](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Dataset-green)](https://arxiv.org/abs/2508.05612)
+
+</div>
+
 Official code repository of **Shuffle-R1**.
+**Project website**: [https://xenozlh.github.io/Shuffle-R1/](https://xenozlh.github.io/Shuffle-R1/)
 
 ## Introduction
-Shuffle-R1 is a a simple yet principled framework that improves RL fine-tuning efficiency by dynamically restructuring trajectory sampling and batch composition. It introduces two key modules:
+Shuffle-R1 is a simple yet principled framework that improves RL fine-tuning efficiency by dynamically restructuring trajectory sampling and batch composition. It introduces two key modules:
 
 - **Pairwise Trajectory Sampling (PTS)**
 - **Advantage-based Batch Shuffle (ABS)**
@@ -123,17 +132,23 @@ For environment installation, you can:
 
 
 ## Training
-### Dataset Format
+### Dataset Preparation
+
+### Custom Dataset Format
 Supported dataset format is the same as EasyR1. Refer to [**here**](https://github.com/hiyouga/EasyR1?tab=readme-ov-file#custom-dataset) for more information.
 
 ### Training Script
 ```
-bash examples/qwen2_5_vl_3b.sh  # 3B model training
+bash examples/qwen2_5_vl_3b.sh  # 3B model training 
 bash examples/qwen2_5_vl_7b.sh  # 7B model training
 ```
 
 ## Evaluation
-Coming soon.
+```
+cd evaluation
+bash eval.sh  # start evaluation
+```
+Refer to `evaluation/eval.sh` for more details.
 
 
 ## Acknowledgement
@@ -144,3 +159,15 @@ Our work benefit from the following open-source projects:
 - [NoisyRollout](https://github.com/NUS-TRAIL/NoisyRollout)
 
 ## Citation
+If you find our work useful for your research, please consider citing:
+```
+@misc{zhu2025shuffler1,
+      title={Shuffle-R1: Efficient RL framework for Multimodal Large Language Models via Data-centric Dynamic Shuffle}, 
+      author={Linghao Zhu, Yiran Guan, Dingkang Liang, Jianzhong Ju, Zhenbo Luo, Bin Qin, Jian Luan, Yuliang Liu, Xiang Bai},
+      year={2025},
+      eprint={2508.05612},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG},
+      url={https://arxiv.org/abs/2508.05612}, 
+}
+```
