@@ -9,6 +9,7 @@
 </div>
 
 Official code repository of **Shuffle-R1**.
+
 **Project website**: [https://xenozlh.github.io/Shuffle-R1/](https://xenozlh.github.io/Shuffle-R1/)
 
 ## Introduction
