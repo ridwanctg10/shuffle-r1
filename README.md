@@ -3,8 +3,8 @@
 # Shuffle-R1: Efficient RL framework for Multimodal Large Language Models via Data-centric Dynamic Shuffle
 
 [![Paper](https://img.shields.io/badge/paper-A42C25?style=flat&logo=arxiv&logoColor=white)](https://arxiv.org/abs/2508.05612) 
-[![Hugging Face Model](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Model-blue)](https://arxiv.org/abs/2508.05612) 
-[![Hugging Face Dataset](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Dataset-green)](https://arxiv.org/abs/2508.05612)
+[![Hugging Face Model](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Model-blue)](https://huggingface.co/collections/XenoZLH/shuffle-r1-68aef221b21950d74c70a9e0) 
+[![Hugging Face Dataset](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Dataset-green)](https://huggingface.co/collections/XenoZLH/shuffle-r1-68aef221b21950d74c70a9e0)
 
 </div>
 
@@ -44,9 +44,11 @@ Experiments across multiple reasoning benchmarks demonstrate that our framework 
 All models are evaluated under CoT prompt.
 
 ## Try our model
+3B checkpoint link: [**Shuffle-R1-Qwen-3B**](https://huggingface.co/XenoZLH/Shuffle-R1-Qwen-3B)
+7B checkpoint link: [**Shuffle-R1-Qwen-7B**](https://huggingface.co/XenoZLH/Shuffle-R1-Qwen-7B)
 
 ### Using Transformers
-The process is the same as [Qwen2.5-VL](https://github.com/QwenLM/Qwen2.5-VL). Note that it is better to add a "Thinking prompt." at the begining of user query.
+The process is the same as [Qwen2.5-VL](https://github.com/QwenLM/Qwen2.5-VL). Note that it is better to add a "Thinking prompt" at the begining of user query.
 
 ```
 from transformers import Qwen2_5_VLForConditionalGeneration, AutoProcessor
@@ -124,27 +126,45 @@ The inference scripts support batch inference. You can organize your inference d
 
 
 ## Install
-Our code is based on [EasyR1](https://github.com/hiyouga/EasyR1). Our code follows a non-intrusive design, which keeps the original functions of EasyR1 unchanged. 
+Our code is based on [**EasyR1**](https://github.com/hiyouga/EasyR1). Our code follows a non-intrusive design, which keeps the original functions of EasyR1 unchanged. 
 
 For environment installation, you can: 
  - Refer to [**official instructions**](https://verl.readthedocs.io/en/latest/start/install.html).
  - Or using the [**Dockerfile**](Dockerfile) to build the environment.
  - Or directly using the [**pre-built docker image**](https://hub.docker.com/r/hiyouga/verl).
 
+```
+git clone https://github.com/xiaomi-research/shuffle-r1.git
+cd shuffle-r1
+pip install -e .
+```
 
 ## Training
 ### Dataset Preparation
+Download our training data at [**here**](https://huggingface.co/datasets/XenoZLH/MMRL30k).
+
+The training data contains 2.1k samples from Geometry3K and 27k random selected samples from MM-EUREKA dataset. Each sample in the dataset follows the format below:
+```
+{
+    "problem": "your problem",  # type: str
+    "images": [{"bytes": image_bytes, "path": None}],  # type: list[dict]
+    "answer": "your answer",  # type: str
+    "source": "data source"  # type: str, not used in training
+}
+```
 
 ### Custom Dataset Format
-Supported dataset format is the same as EasyR1. Refer to [**here**](https://github.com/hiyouga/EasyR1?tab=readme-ov-file#custom-dataset) for more information.
+Supported dataset format is the same as EasyR1. You can organize your dataset in the same format as illustrated above. Refer to [**here**](https://github.com/hiyouga/EasyR1) for more information. 
 
 ### Training Script
 ```
 bash examples/qwen2_5_vl_3b.sh  # 3B model training 
 bash examples/qwen2_5_vl_7b.sh  # 7B model training
 ```
+All training are conducted on 8x H800-80G GPUs.
 
 ## Evaluation
+Download the evaluation benchmark at [**here**](https://huggingface.co/datasets/XenoZLH/MM_Eval). We use Gemini-2.0-flash to evaluate the model response for certain benchmakrs. Make sure to adjust the `llm_eval_score_retry` function in `evaluation/utils/model_parser.py` to enable your own API service before evaluation.
 ```
 cd evaluation
 bash eval.sh  # start evaluation
